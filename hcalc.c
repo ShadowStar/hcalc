@@ -7,7 +7,7 @@
  *
  *        Version:  1.0
  *        Created:  04/04/14 14:32:58
- *    Last Change:  04/09/14 19:37:43
+ *    Last Change:  04/09/14 20:30:10
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -107,7 +107,7 @@ static inline int ___constant_clz64(uint64_t x)
 	___constant_clz64(x) : arch_clz64(x))
 
 static char inbuf[4096];
-static int inlen = 0;
+static unsigned int inlen = 0;
 
 static inline void clear_ibuf(void)
 {
