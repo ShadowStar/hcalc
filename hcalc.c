@@ -7,7 +7,7 @@
  *
  *        Version:  1.0
  *        Created:  04/04/14 14:32:58
- *    Last Change:  04/09/14 20:30:10
+ *    Last Change:  04/12/14 16:15:52
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -524,6 +524,8 @@ static uint64_t do_expression(char **p, int *perr, int bracket)
 		return 0;
 	case '(':
 		*p += 1;
+		a = do_expression(p, &err, 1);
+		break;
 	default:
 		a = get_number(p, &err);
 	}
