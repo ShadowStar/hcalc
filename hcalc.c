@@ -7,7 +7,7 @@
  *
  *        Version:  1.0
  *        Created:  04/04/14 14:32:58
- *    Last Change:  04/12/14 16:15:52
+ *    Last Change:  04/12/14 16:24:37
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -737,6 +737,7 @@ static void help(void)
 		);
 	help_number();
 	help_symbol();
+	fprintf(stdout, "\nVersion: "VER"\n");
 }
 
 int main(int argc, char *argv[])
