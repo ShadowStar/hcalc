@@ -7,7 +7,7 @@
  *
  *        Version:  1.0
  *        Created:  04/04/14 14:32:58
- *    Last Change:  04/12/14 16:24:37
+ *    Last Change:  04/15/14 14:00:17
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -123,19 +123,43 @@ static inline void new_prompt(void)
 
 static void show_result(uint64_t result)
 {
-	int i = clz64(result);
-	char tmp[65] = { 0 }, *p = tmp;
+	int i = clz64(result), show = 0;
+	char tmp[73] = { 0 }, *p = tmp;
 
+	if (result == 0) {
+		fprintf(stdout, "\nBin  0\n");
+		fprintf(stdout, "Oct  0\n");
+		fprintf(stdout, "Dec  0\n");
+		fprintf(stdout, "Hex  0\n");
+		return;
+	}
 	for (;i < 64; i++) {
 		if ((result << i) & (0x1ULL << 63))
 			*p++ = '1';
 		else
 			*p++ = '0';
+		if ((i & 7) == 7)
+			*p++ = ' ';
 	}
 
-	fprintf(stdout,
-		"Bin %s\nOct 0%llo\nDec %lld\nDec %lluULL\nHex 0x%llX\n",
-		tmp, result, result, result, result);
+	fprintf(stdout, "\nBin  %s\n", tmp);
+	fprintf(stdout, "Oct  0%llo\n", result);
+	fprintf(stdout, "Dec  %lld\n", result);
+	if ((int64_t)result < 0) {
+		if ((result >> 32) == 0xFFFFFFFF)
+			fprintf(stdout, "     %u (u32)\n", (uint32_t)result);
+		fprintf(stdout, "     %llu (u64)\n", result);
+	}
+
+	fprintf(stdout, "Hex  ");
+	for (i = 48; i >= 0; i -= 16) {
+		if (show || (result >> i) & 0xFFFF) {
+			fprintf(stdout, "%04llX ",
+				(result >> i) & 0xFFFF);
+			show = 1;
+		}
+	}
+	fprintf(stdout, "\n");
 }
 
 static inline void result_prompt(uint64_t result)
