@@ -7,7 +7,7 @@
  *
  *        Version:  1.0
  *        Created:  04/04/14 14:32:58
- *    Last Change:  04/15/14 14:03:35
+ *    Last Change:  04/15/14 14:10:18
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -555,7 +555,6 @@ static uint64_t do_expression(char **p, int *perr, int bracket)
 	}
 	if (err) {
 err:
-		fprintf(stdout, "Expression Error.\n");
 		*perr = 1;
 		return -1UL;
 	}
