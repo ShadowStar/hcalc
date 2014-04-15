@@ -7,7 +7,7 @@
  *
  *        Version:  1.0
  *        Created:  04/04/14 14:32:58
- *    Last Change:  04/15/14 17:58:37
+ *    Last Change:  04/15/14 18:17:48
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -542,7 +542,7 @@ static void help(void)
 		">>> No Floating-Point Support <<<\n"
 		"Binding Key:\n"
 		" q, Q, <CTRL-D>  - Quit\n"
-		"   <ESC>         - Clear current line\n"
+		" c, C, <ESC>     - Clear current line\n"
 		);
 	help_number();
 	help_symbol();
@@ -746,6 +746,13 @@ static void get_input(void)
 			case 'q':
 			case 'Q':
 				exit(EXIT_SUCCESS);
+			case 'c':
+			case 'C':
+				if (inlen) {
+					clear_line(inlen);
+					clear_ibuf();
+				}
+				break;
 			case ' ':
 				if (inlen && !isspace(inbuf[inlen - 1])) {
 			default:
