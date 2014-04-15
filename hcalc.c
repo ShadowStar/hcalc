@@ -7,7 +7,7 @@
  *
  *        Version:  1.0
  *        Created:  04/04/14 14:32:58
- *    Last Change:  04/15/14 18:17:48
+ *    Last Change:  04/15/14 18:22:37
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -543,6 +543,8 @@ static void help(void)
 		"Binding Key:\n"
 		" q, Q, <CTRL-D>  - Quit\n"
 		" c, C, <ESC>     - Clear current line\n"
+		" =, <Enter>      - Do calculate\n"
+		"    ?            - Show this help message\n"
 		);
 	help_number();
 	help_symbol();
@@ -753,6 +755,9 @@ static void get_input(void)
 					clear_ibuf();
 				}
 				break;
+			case '=':
+				putc(10, stdout);
+				return;
 			case ' ':
 				if (inlen && !isspace(inbuf[inlen - 1])) {
 			default:
