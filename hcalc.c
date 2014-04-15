@@ -7,7 +7,7 @@
  *
  *        Version:  1.0
  *        Created:  04/04/14 14:32:58
- *    Last Change:  04/15/14 14:00:17
+ *    Last Change:  04/15/14 14:03:35
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -408,7 +408,7 @@ static uint64_t get_number(char **in, int *err)
 		*err = 1;
 	}
 	if (*err) {
-		fprintf(stdout, "Unrecognized Number\n");
+		fprintf(stdout, "Unrecognized Number ``%c''\n", **in);
 		return -1UL;
 	}
 	switch (mod) {
@@ -532,7 +532,7 @@ static char get_symbol(char **in)
 		}
 		break;
 	}
-	fprintf(stdout, "Unrecognized Symbol %c\n", **in);
+	fprintf(stdout, "Unrecognized Symbol ``%c''\n", **in);
 	return -1;
 }
 
