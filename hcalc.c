@@ -7,7 +7,7 @@
  *
  *        Version:  1.0
  *        Created:  04/04/14 14:32:58
- *    Last Change:  04/15/14 14:10:18
+ *    Last Change:  04/15/14 17:58:37
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -536,6 +536,19 @@ static char get_symbol(char **in)
 	return -1;
 }
 
+static void help(void)
+{
+	fprintf(stdout, "\nUsage: hcalc [ EXPRESSION ]\n"
+		">>> No Floating-Point Support <<<\n"
+		"Binding Key:\n"
+		" q, Q, <CTRL-D>  - Quit\n"
+		"   <ESC>         - Clear current line\n"
+		);
+	help_number();
+	help_symbol();
+	fprintf(stdout, "\nVersion: "VER"\n");
+}
+
 static uint64_t do_expression(char **p, int *perr, int bracket)
 {
 	int err = 0;
@@ -707,17 +720,38 @@ static void __init_fd_tc(int fd)
 	tcsetattr(fd, TCSANOW, &options);
 }
 
+static inline void backspace(void)
+{
+	putc(8, stdout);	// BS
+	putc(32, stdout);	// SPACE
+	putc(8, stdout);	// BS
+}
+
+static inline void clear_line(unsigned int len)
+{
+	while (len--) {
+		backspace();
+	}
+}
+
 static void get_input(void)
 {
 	int in;
 
 	while ((in = getc(stdin)) != EOF && inlen < sizeof(inbuf)) {
 		if (isprint(in)) {
-			if (!(isspace(in) && isspace(inbuf[inlen - 1]))) {
-				if (in == 'q' || in == 'Q')
-					exit(EXIT_SUCCESS);
-				inbuf[inlen++] = in;
-				putc(in, stdout);
+			switch (in) {
+			case '?':
+				return help();
+			case 'q':
+			case 'Q':
+				exit(EXIT_SUCCESS);
+			case ' ':
+				if (inlen && !isspace(inbuf[inlen - 1])) {
+			default:
+					inbuf[inlen++] = in;
+					putc(in, stdout);
+				}
 			}
 		} else {
 			switch (in) {
@@ -727,9 +761,7 @@ static void get_input(void)
 			case 8:		// BS
 			case 127:	// DEL
 				if (inlen > 0) {
-					putc(8, stdout);	// BS
-					putc(32, stdout);	// SPACE
-					putc(8, stdout);	// BS
+					backspace();
 					inbuf[--inlen] = '\0';
 				}
 				break;
@@ -738,29 +770,14 @@ static void get_input(void)
 				putc(10, stdout);
 				return;
 			case 27:	// ESC
-				while (inlen) {
-					inbuf[--inlen] = '\0';
-					putc(8, stdout);	// BS
-					putc(32, stdout);	// SPACE
-					putc(8, stdout);	// BS
+				if (inlen) {
+					clear_line(inlen);
+					clear_ibuf();
 				}
 				break;
 			}
 		}
 	}
-}
-
-static void help(void)
-{
-	fprintf(stdout, "\nUsage: hcalc [ EXPRESSION ]\n"
-		">>> No Floating-Point Support <<<\n"
-		"Binding Key:\n"
-		" q, Q, <CTRL-D>  - Quit\n"
-		"   <ESC>         - Clear current line\n"
-		);
-	help_number();
-	help_symbol();
-	fprintf(stdout, "\nVersion: "VER"\n");
 }
 
 int main(int argc, char *argv[])
