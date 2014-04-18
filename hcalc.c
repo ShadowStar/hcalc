@@ -7,7 +7,7 @@
  *
  *        Version:  1.0
  *        Created:  04/04/14 14:32:58
- *    Last Change:  04/15/14 18:22:37
+ *    Last Change:  04/18/14 16:05:40
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -288,7 +288,9 @@ static void help_number(void)
 		" [hH]XXX         - Hexadecimal number\n"
 		" [0x]XXX         - Hexadecimal number\n"
 		" X[A-F]|[a-f]X   - Hexadecimal number\n"
-		" 0XXX            - Binary or Octal if there is number "
+		"                   Add prefix ``0x'' to the Hexadecimal number"
+		" which starting with the `[bB]' or `[dD]'\n"
+		" 0XXX            - Binary, or Octal if there is digit"
 		"in X more than 1\n"
 		" OTHERS          - Decimal if it is a number\n"
 		);
@@ -374,13 +376,19 @@ static uint64_t get_number(char **in, int *err)
 		break;
 	case 'b':
 	case 'B':
-		type = 'b';
-		(*in)++;
+		if (*((*in) + 1) == '0' || *((*in) + 1) == '1') {
+			type = 'b';
+			(*in)++;
+		} else
+			type = 'h';
 		break;
 	case 'd':
 	case 'D':
-		type = 'd';
-		(*in)++;
+		if (isdigit(*((*in) + 1))) {
+			type = 'd';
+			(*in)++;
+		} else
+			type = 'h';
 		break;
 	case '0':
 		if (*(*in + 1) == 'x') {
@@ -542,7 +550,7 @@ static void help(void)
 		">>> No Floating-Point Support <<<\n"
 		"Binding Key:\n"
 		" q, Q, <CTRL-D>  - Quit\n"
-		" c, C, <ESC>     - Clear current line\n"
+		"    <ESC>        - Clear current line\n"
 		" =, <Enter>      - Do calculate\n"
 		"    ?            - Show this help message\n"
 		);
@@ -748,13 +756,6 @@ static void get_input(void)
 			case 'q':
 			case 'Q':
 				exit(EXIT_SUCCESS);
-			case 'c':
-			case 'C':
-				if (inlen) {
-					clear_line(inlen);
-					clear_ibuf();
-				}
-				break;
 			case '=':
 				putc(10, stdout);
 				return;
