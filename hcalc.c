@@ -7,7 +7,7 @@
  *
  *        Version:  1.0
  *        Created:  04/04/14 14:32:58
- *    Last Change:  04/18/14 16:05:40
+ *    Last Change:  04/23/14 14:07:22
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -108,6 +108,7 @@ static inline int ___constant_clz64(uint64_t x)
 
 static char inbuf[4096];
 static unsigned int inlen = 0;
+static int interactive;
 
 static inline void clear_ibuf(void)
 {
@@ -127,7 +128,7 @@ static void show_result(uint64_t result)
 	char tmp[73] = { 0 }, *p = tmp;
 
 	if (result == 0) {
-		fprintf(stdout, "\nBin  0\n");
+		fprintf(stdout, "Bin  0\n");
 		fprintf(stdout, "Oct  0\n");
 		fprintf(stdout, "Dec  0\n");
 		fprintf(stdout, "Hex  0\n");
@@ -142,7 +143,7 @@ static void show_result(uint64_t result)
 			*p++ = ' ';
 	}
 
-	fprintf(stdout, "\nBin  %s\n", tmp);
+	fprintf(stdout, "Bin  %s\n", tmp);
 	fprintf(stdout, "Oct  0%llo\n", result);
 	fprintf(stdout, "Dec  %lld\n", result);
 	if ((int64_t)result < 0) {
@@ -168,10 +169,12 @@ static inline void result_prompt(uint64_t result)
 
 	if (len)
 		show_result(result);
-	new_prompt();
-	if (len) {
-		fprintf(stdout, "0x%llX ", result);
-		inlen = sprintf(inbuf, "0x%llX ", result);
+	if (interactive) {
+		new_prompt();
+		if (len) {
+			fprintf(stdout, "0x%llX ", result);
+			inlen = sprintf(inbuf, "0x%llX ", result);
+		}
 	}
 }
 
@@ -179,8 +182,12 @@ static inline void get_from_argv(int c, char **v)
 {
 	clear_ibuf();
 	do {
-		inlen += snprintf(inbuf + inlen, sizeof(inbuf) - inlen, "%s ",
-				  *(v++));
+		if (strncmp(*v, "-i", 3) == 0)
+			interactive = 1;
+		else
+			inlen += snprintf(inbuf + inlen, sizeof(inbuf) - inlen,
+					  "%s ", *v);
+		v++;
 	} while (--c && inlen < sizeof(inbuf));
 }
 
@@ -546,8 +553,10 @@ static char get_symbol(char **in)
 
 static void help(void)
 {
-	fprintf(stdout, "\nUsage: hcalc [ EXPRESSION ]\n"
-		">>> No Floating-Point Support <<<\n"
+	fprintf(stdout, "\nUsage: hcalc [-i] [ EXPRESSION ]\n"
+		">>> No Floating-Point Support <<<\n\n"
+		"Option:\n"
+		"    -i           - Interactive\n\n"
 		"Binding Key:\n"
 		" q, Q, <CTRL-D>  - Quit\n"
 		"    <ESC>        - Clear current line\n"
@@ -800,21 +809,27 @@ int main(int argc, char *argv[])
 	uint64_t result;
 	__init_fd_tc(0);
 	if (argc < 2) {
+		interactive = 1;
 repeat_new:
 		help();
 		new_prompt();
 repeat:
 		get_input();
 	} else {
+		interactive = 0;
 		get_from_argv(argc - 1, argv + 1);
 	}
 	p = inbuf;
 	result = do_expression(&p, &err, 0);
 	if (err) {
-		goto repeat_new;
+		if (!interactive)
+			help();
+		else
+			goto repeat_new;
 	} else {
 		result_prompt(result);
-		goto repeat;
+		if (interactive)
+			goto repeat;
 	}
 	return EXIT_SUCCESS;
 }
