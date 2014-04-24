@@ -3,14 +3,20 @@ HCalc
 
 Hex Calc support Bitwise Operator &amp; Arithmetic
 ***
-Usage: hcalc [ EXPRESSION ]
+Usage: hcalc [-i] [ EXPRESSION ]
 
 \>>> No Floating-Point Support <<<
+
+Option:
+
+       -i           - Interactive
 
 Binding Key:
 
     q, Q, <CTRL-D>  - Quit
-      <ESC>         - Clear current line
+       <ESC>        - Clear current line
+    =, <Enter>      - Do calculate
+       ?            - Show this help message
 
 Support number:
 
@@ -20,7 +26,9 @@ Support number:
     [hH]XXX         - Hexadecimal number
     [0x]XXX         - Hexadecimal number
     X[A-F]|[a-f]X   - Hexadecimal number
-    0XXX            - Binary or Octal if there is number in X more than 1
+                      Add prefix ``0x'' to the Hexadecimal number which starting with 
+                      the `[bB]' or `[dD]'
+    0XXX            - Binary, or Octal if there is digitin X more than 1
     OTHERS          - Decimal if it is a number
 
 Support Symbol:
