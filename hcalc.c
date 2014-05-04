@@ -7,7 +7,7 @@
  *
  *        Version:  1.0
  *        Created:  04/04/14 14:32:58
- *    Last Change:  04/23/14 14:07:22
+ *    Last Change:  05/04/14 14:34:10
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -299,7 +299,13 @@ static void help_number(void)
 		" which starting with the `[bB]' or `[dD]'\n"
 		" 0XXX            - Binary, or Octal if there is digit"
 		"in X more than 1\n"
-		" OTHERS          - Decimal if it is a number\n"
+		" OTHERS          - Decimal if it is a number\n\n"
+		" Suffix Support:\n"
+		" k|K             - Kilo - 2^10\n"
+		" m|M             - Mega - 2^20\n"
+		" g|G             - Giga - 2^30\n"
+		" t|T             - Tera - 2^40\n"
+		" p|P             - Peta - 2^50\n"
 		);
 }
 
@@ -425,6 +431,24 @@ static uint64_t get_number(char **in, int *err)
 	if (*err) {
 		fprintf(stdout, "Unrecognized Number ``%c''\n", **in);
 		return -1UL;
+	}
+	switch (**in) {
+	case 'p':
+	case 'P':
+		res *= 1024;
+	case 't':
+	case 'T':
+		res *= 1024;
+	case 'g':
+	case 'G':
+		res *= 1024;
+	case 'm':
+	case 'M':
+		res *= 1024;
+	case 'k':
+	case 'K':
+		res *= 1024;
+		(*in)++;
 	}
 	switch (mod) {
 	case '-':
