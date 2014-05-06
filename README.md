@@ -31,6 +31,14 @@ Support number:
     0XXX            - Binary, or Octal if there is digitin X more than 1
     OTHERS          - Decimal if it is a number
 
+Suffix Support:
+
+    k|K             - Kilo - 2^10
+    m|M             - Mega - 2^20
+    g|G             - Giga - 2^30
+    t|T             - Tera - 2^40
+    p|P             - Peta - 2^50
+
 Support Symbol:
 
     +, add, ADD     - arithmetic Addition     [priority lowest]
