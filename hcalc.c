@@ -7,7 +7,7 @@
  *
  *        Version:  1.0
  *        Created:  04/04/14 14:32:58
- *    Last Change:  05/04/14 14:34:10
+ *    Last Change:  03/19/15 20:05:01
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -583,7 +583,7 @@ static void help(void)
 		"    -i           - Interactive\n\n"
 		"Binding Key:\n"
 		" q, Q, <CTRL-D>  - Quit\n"
-		"    <ESC>        - Clear current line\n"
+		" r, R, <ESC>     - Clear current line\n"
 		" =, <Enter>      - Do calculate\n"
 		"    ?            - Show this help message\n"
 		);
@@ -782,45 +782,42 @@ static void get_input(void)
 	int in;
 
 	while ((in = getc(stdin)) != EOF && inlen < sizeof(inbuf)) {
-		if (isprint(in)) {
-			switch (in) {
-			case '?':
-				return help();
-			case 'q':
-			case 'Q':
-				exit(EXIT_SUCCESS);
-			case '=':
-				putc(10, stdout);
-				return;
-			case ' ':
-				if (inlen && !isspace(inbuf[inlen - 1])) {
-			default:
-					inbuf[inlen++] = in;
-					putc(in, stdout);
-				}
+		switch (in) {
+		case 3:		// ^C
+		case 4:		// ^D
+			exit(EXIT_SUCCESS);
+		case 8:		// BS
+		case 127:	// DEL
+			if (inlen > 0) {
+				backspace();
+				inbuf[--inlen] = '\0';
 			}
-		} else {
-			switch (in) {
-			case 3:		// ^C
-			case 4:		// ^D
-				exit(EXIT_SUCCESS);
-			case 8:		// BS
-			case 127:	// DEL
-				if (inlen > 0) {
-					backspace();
-					inbuf[--inlen] = '\0';
-				}
-				break;
-			case 10:	// LF
-			case 13:	// CR
-				putc(10, stdout);
-				return;
-			case 27:	// ESC
-				if (inlen) {
-					clear_line(inlen);
-					clear_ibuf();
-				}
-				break;
+			break;
+		case 10:	// LF
+		case 13:	// CR
+			putc(10, stdout);
+			return;
+		case 27:	// ESC
+		case 'r':
+		case 'R':
+			if (inlen) {
+				clear_line(inlen);
+				clear_ibuf();
+			}
+			break;
+		case '?':
+			return help();
+		case 'q':
+		case 'Q':
+			exit(EXIT_SUCCESS);
+		case '=':
+			putc(10, stdout);
+			return;
+		case ' ':
+			if (inlen && !isspace(inbuf[inlen - 1])) {
+		default:
+				inbuf[inlen++] = in;
+				putc(in, stdout);
 			}
 		}
 	}
