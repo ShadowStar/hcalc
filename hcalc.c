@@ -7,7 +7,7 @@
  *
  *        Version:  1.0
  *        Created:  04/04/14 14:32:58
- *    Last Change:  03/19/15 20:05:01
+ *    Last Change:  03/20/15 13:42:01
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -785,6 +785,8 @@ static void get_input(void)
 		switch (in) {
 		case 3:		// ^C
 		case 4:		// ^D
+		case 'q':
+		case 'Q':
 			exit(EXIT_SUCCESS);
 		case 8:		// BS
 		case 127:	// DEL
@@ -795,6 +797,7 @@ static void get_input(void)
 			break;
 		case 10:	// LF
 		case 13:	// CR
+		case '=':
 			putc(10, stdout);
 			return;
 		case 27:	// ESC
@@ -807,17 +810,13 @@ static void get_input(void)
 			break;
 		case '?':
 			return help();
-		case 'q':
-		case 'Q':
-			exit(EXIT_SUCCESS);
-		case '=':
-			putc(10, stdout);
-			return;
 		case ' ':
 			if (inlen && !isspace(inbuf[inlen - 1])) {
 		default:
-				inbuf[inlen++] = in;
-				putc(in, stdout);
+				if (isprint(in)) {
+					inbuf[inlen++] = in;
+					putc(in, stdout);
+				}
 			}
 		}
 	}
