@@ -7,12 +7,12 @@
  *
  *        Version:  1.0
  *        Created:  04/04/14 14:32:58
- *    Last Change:  03/20/15 13:42:01
+ *    Last Change:  11/24/2020 19:36:59
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  Lei Liu (ShadowStar), orphen.leiliu@me.com
- *   Organization:  
+ *         Author:  ShadowStar, <orphen.leiliu@gmail.com>
+ *   Organization:  Gmail
  *
  * =============================================================================
  */
@@ -134,6 +134,7 @@ static void show_result(uint64_t result)
 		fprintf(stdout, "Hex  0\n");
 		return;
 	}
+	i &= ~7U;
 	for (;i < 64; i++) {
 		if ((result << i) & (0x1ULL << 63))
 			*p++ = '1';
