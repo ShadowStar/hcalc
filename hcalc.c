@@ -7,7 +7,7 @@
  *
  *        Version:  1.0
  *        Created:  04/04/14 14:32:58
- *    Last Change:  11/24/2020 19:36:59
+ *    Last Change:  11/16/2021 13:07:41
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -103,8 +103,38 @@ static inline int ___constant_clz64(uint64_t x)
 	return n;
 }
 
-#define clz64(x) (__builtin_constant_p(x) ?				\
-	___constant_clz64(x) : arch_clz64(x))
+#define clz64(x) (__builtin_constant_p(x) ?                     \
+    ___constant_clz64(x) : arch_clz64(x))
+
+#define bit_swap(x) ({                                          \
+    typeof(x) _x = (x), _m = (typeof(x))~0ULL;                  \
+    unsigned _s = sizeof(_x) * 8;                               \
+    while ((_s >>= 1)) {                                        \
+        _m ^= (_m << _s);                                       \
+        _x = ((_x >> _s) & _m) | ((_x << _s) & ~_m);            \
+    } _x; })
+
+#define byte_swap8(x)   ((uint8_t)(x))
+
+#define byte_swap16(x)  ((uint16_t)(                            \
+    (((uint16_t)(x) & (uint16_t)0x00ffU) << 8) |                \
+    (((uint16_t)(x) & (uint16_t)0xff00U) >> 8)))
+
+#define byte_swap32(x)  ((uint32_t)(                            \
+    (((uint32_t)(x) & (uint32_t)0x000000ffUL) << 24) |          \
+    (((uint32_t)(x) & (uint32_t)0x0000ff00UL) <<  8) |          \
+    (((uint32_t)(x) & (uint32_t)0x00ff0000UL) >>  8) |          \
+    (((uint32_t)(x) & (uint32_t)0xff000000UL) >> 24)))
+
+#define byte_swap64(x)  ((uint64_t)(                            \
+    (((uint64_t)(x) & (uint64_t)0x00000000000000ffULL) << 56) | \
+    (((uint64_t)(x) & (uint64_t)0x000000000000ff00ULL) << 40) | \
+    (((uint64_t)(x) & (uint64_t)0x0000000000ff0000ULL) << 24) | \
+    (((uint64_t)(x) & (uint64_t)0x00000000ff000000ULL) <<  8) | \
+    (((uint64_t)(x) & (uint64_t)0x000000ff00000000ULL) >>  8) | \
+    (((uint64_t)(x) & (uint64_t)0x0000ff0000000000ULL) >> 24) | \
+    (((uint64_t)(x) & (uint64_t)0x00ff000000000000ULL) >> 40) | \
+    (((uint64_t)(x) & (uint64_t)0xff00000000000000ULL) >> 56)))
 
 static char inbuf[4096];
 static unsigned int inlen = 0;
@@ -122,46 +152,66 @@ static inline void new_prompt(void)
 	fprintf(stdout, "> ");
 }
 
+static void __bin_output(uint64_t result)
+{
+    int i = clz64(result) & ~7U;
+    char tmp[73] = { 0 }, *p = tmp;
+
+    for (;i < 64; i++) {
+        if ((result << i) & (0x1ULL << 63))
+            *p++ = '1';
+        else
+            *p++ = '0';
+        if ((i & 7) == 7)
+            *p++ = ' ';
+    }
+    if (result == 0)
+        *tmp = '0';
+    fprintf(stdout, "%s\n", tmp);
+}
+
+static void __hex_output(uint64_t result, int min_width)
+{
+    int i;
+    for (i = 48; i >= 0; i -= 16) {
+        if (i < min_width || (result >> i) & 0xFFFF) {
+            fprintf(stdout, "%0*llX ", (min_width / 4) >= 4 ? 4 : 2,
+                    (result >> i) & 0xFFFF);
+        }
+    }
+    fprintf(stdout, "\n");
+}
+
 static void show_result(uint64_t result)
 {
-	int i = clz64(result), show = 0;
-	char tmp[73] = { 0 }, *p = tmp;
+    fprintf(stdout, "Bin  ");
+    __bin_output(result);
+    fprintf(stdout, "Oct  0%llo\n", result);
+    fprintf(stdout, "Dec  %lld\n", result);
+    if ((int64_t)result < 0) {
+        if ((result >> 32) == 0xFFFFFFFF)
+            fprintf(stdout, "     %u (u32)\n", (uint32_t)result);
+        fprintf(stdout, "     %llu (u64)\n", result);
+    }
+#define HEX_RESULT(x, mw)   ({  \
+    uint##mw##_t r;             \
+    fprintf(stdout, "Hex  ");   \
+    __hex_output(x, mw);        \
+    r = byte_swap##mw(x);       \
+    fprintf(stdout, " BS  ");   \
+    __hex_output(r, mw);        \
+    r = bit_swap(x);            \
+    fprintf(stdout, " bS  ");   \
+    __hex_output(r, mw); })
 
-	if (result == 0) {
-		fprintf(stdout, "Bin  0\n");
-		fprintf(stdout, "Oct  0\n");
-		fprintf(stdout, "Dec  0\n");
-		fprintf(stdout, "Hex  0\n");
-		return;
-	}
-	i &= ~7U;
-	for (;i < 64; i++) {
-		if ((result << i) & (0x1ULL << 63))
-			*p++ = '1';
-		else
-			*p++ = '0';
-		if ((i & 7) == 7)
-			*p++ = ' ';
-	}
-
-	fprintf(stdout, "Bin  %s\n", tmp);
-	fprintf(stdout, "Oct  0%llo\n", result);
-	fprintf(stdout, "Dec  %lld\n", result);
-	if ((int64_t)result < 0) {
-		if ((result >> 32) == 0xFFFFFFFF)
-			fprintf(stdout, "     %u (u32)\n", (uint32_t)result);
-		fprintf(stdout, "     %llu (u64)\n", result);
-	}
-
-	fprintf(stdout, "Hex  ");
-	for (i = 48; i >= 0; i -= 16) {
-		if (show || (result >> i) & 0xFFFF) {
-			fprintf(stdout, "%04llX ",
-				(result >> i) & 0xFFFF);
-			show = 1;
-		}
-	}
-	fprintf(stdout, "\n");
+    if (result >> 32)
+        HEX_RESULT(result, 64);
+    else if (result >> 16)
+        HEX_RESULT((uint32_t)result, 32);
+    else if (result >> 8)
+        HEX_RESULT((uint16_t)result, 16);
+    else
+        HEX_RESULT((uint8_t)result, 8);
 }
 
 static inline void result_prompt(uint64_t result)
