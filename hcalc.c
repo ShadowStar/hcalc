@@ -7,7 +7,7 @@
  *
  *        Version:  1.0
  *        Created:  04/04/14 14:32:58
- *    Last Change:  11/16/2021 13:07:41
+ *    Last Change:  11/09/2023 14:50:27
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -102,6 +102,10 @@ static inline int ___constant_clz64(uint64_t x)
 	n -= (x >> 63);
 	return n;
 }
+
+#ifndef arch_clz64
+#define arch_clz64  __builtin_clzll
+#endif
 
 #define clz64(x) (__builtin_constant_p(x) ?                     \
     ___constant_clz64(x) : arch_clz64(x))
